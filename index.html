@@ -59,7 +59,29 @@
   }
   .brand-name{font-size:16px;font-weight:700;letter-spacing:-.2px;}
   .brand-sub{font-size:10.5px;color:rgba(255,255,255,.4);padding-left:2px;margin-top:3px;}
-  .side-nav{flex:1;overflow-y:auto;padding:14px 12px;}
+  .side-nav{
+    flex:1;overflow-y:auto;padding:14px 12px;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(255,255,255,.16) transparent;
+  }
+  /* Ascenseur discret, fondu dans le navy — visible seulement au survol */
+  .side-nav::-webkit-scrollbar{width:6px;}
+  .side-nav::-webkit-scrollbar-track{background:transparent;}
+  .side-nav::-webkit-scrollbar-thumb{
+    background:rgba(255,255,255,.14);border-radius:99px;
+  }
+  .side-nav:hover::-webkit-scrollbar-thumb{background:rgba(255,255,255,.28);}
+  .side-nav::-webkit-scrollbar-button{display:none;height:0;}
+
+  /* Ascenseur de la page, assorti au bleu du document */
+  html{scrollbar-width:thin;scrollbar-color:var(--navy-100) transparent;}
+  body::-webkit-scrollbar{width:10px;}
+  body::-webkit-scrollbar-track{background:transparent;}
+  body::-webkit-scrollbar-thumb{
+    background:var(--navy-100);border-radius:99px;
+    border:3px solid var(--white);
+  }
+  body:hover::-webkit-scrollbar-thumb{background:var(--navy-300);}
   .side-group{font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:rgba(255,255,255,.42);margin:16px 8px 6px;font-weight:600;}
   .side-group:first-child{margin-top:0;}
   .side-nav a{
