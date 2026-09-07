@@ -1,12 +1,12 @@
 # Centre d'aide — Leo RH
 
-Manuel utilisateur de **Leo RH by Neva**, publié via GitHub Pages.
+Centre d'aide de **Leo RH by Neva**, publié via GitHub Pages.
 
 👉 **https://derhamza.github.io/leo-rh-centre-aide/**
 
 ## Contenu
 
-`index.html` — le manuel complet, en un seul fichier autonome : styles, icônes,
+`index.html` — le centre d'aide complet, en un seul fichier autonome : styles, icônes,
 logo et captures d'écran sont intégrés, aucune dépendance externe.
 
 Il couvre la connexion, l'interface, les rôles et permissions, les sept modules
