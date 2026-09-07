@@ -92,15 +92,20 @@
     transition:background .15s,color .15s;
   }
   .side-nav a:hover{background:rgba(255,255,255,.09);color:#fff;}
-  .side-nav a.active{background:rgba(255,255,255,.16);color:#fff;font-weight:600;}
+  /* Section courante : pastille blanche, texte navy */
+  .side-nav a.active{
+    background:#fff;color:var(--navy-900);font-weight:600;
+    box-shadow:0 1px 3px rgba(0,0,0,.18);
+  }
+  .side-nav a.active:hover{background:#fff;color:var(--navy-900);}
   .side-nav a .ico{
     width:16px;height:16px;flex:0 0 16px;
     fill:none;stroke:currentColor;stroke-width:1.8;
     stroke-linecap:round;stroke-linejoin:round;
     opacity:.75;transition:opacity .15s;
   }
-  .side-nav a:hover .ico,
-  .side-nav a.active .ico{opacity:1;}
+  .side-nav a:hover .ico{opacity:1;}
+  .side-nav a.active .ico{opacity:1;stroke:var(--navy-600);}
   .side-foot{
     padding:12px 18px;border-top:1px solid rgba(255,255,255,.1);
     font-size:11px;color:rgba(255,255,255,.6);letter-spacing:.02em;
@@ -1051,7 +1056,7 @@
     }
     links.forEach(function(a, i){ a.classList.toggle('active', i === current); });
     var h = sections[current] && sections[current].querySelector('h2.sec');
-    crumb.textContent = h ? h.textContent.replace(/^\d+/, '').trim() : 'Centre d'aide — Leo RH by Neva';
+    crumb.textContent = h ? h.textContent.replace(/^\d+/, '').trim() : "Centre d'aide — Leo RH by Neva";
   }
   window.addEventListener('scroll', sync, { passive: true });
   window.addEventListener('resize', sync);
