@@ -270,6 +270,54 @@
     th{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     section{page-break-inside:avoid;}
   }
+
+  /* Recherche */
+  .recherche{position:relative;flex:1;max-width:440px;margin-left:auto;}
+  .recherche-champ{
+    display:flex;align-items:center;gap:8px;
+    border:1px solid var(--line);border-radius:10px;background:var(--white);
+    padding:0 10px;height:38px;transition:border-color .15s, box-shadow .15s;
+  }
+  .recherche-champ:focus-within{border-color:var(--navy-500);box-shadow:0 0 0 3px var(--navy-100);}
+  .recherche-champ svg{width:16px;height:16px;flex:none;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .recherche-champ input{
+    flex:1;min-width:0;border:0;outline:0;background:transparent;
+    font:inherit;font-size:14px;color:var(--ink);
+  }
+  .recherche-champ input::placeholder{color:var(--muted);}
+  .recherche-champ input::-webkit-search-cancel-button{display:none;}
+  .recherche-champ kbd{
+    font:inherit;font-size:11px;color:var(--muted);border:1px solid var(--line);
+    border-radius:5px;padding:0 6px;line-height:18px;background:var(--navy-50);
+  }
+  .recherche-effacer{border:0;background:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:0 2px;}
+  .recherche-effacer:hover{color:var(--ink);}
+  .recherche-resultats{
+    position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:30;
+    background:var(--white);border:1px solid var(--line);border-radius:12px;
+    box-shadow:0 12px 32px rgba(10,22,51,.14);
+    max-height:min(70vh,520px);overflow-y:auto;padding:6px;
+  }
+  .recherche-resultats[hidden]{display:none;}
+  .recherche-resultat{
+    display:block;width:100%;text-align:left;border:0;background:none;cursor:pointer;
+    padding:9px 12px;border-radius:8px;font:inherit;color:var(--ink);
+  }
+  .recherche-resultat:hover,.recherche-resultat.actif{background:var(--navy-50);}
+  .recherche-resultat .chemin{display:block;font-size:11.5px;color:var(--muted);margin-bottom:1px;}
+  .recherche-resultat .titre{display:block;font-size:14px;font-weight:600;color:var(--navy-800);}
+  .recherche-resultat .extrait{display:block;font-size:13px;color:var(--muted);line-height:1.5;margin-top:2px;}
+  .recherche-resultat mark,.recherche-vide mark{background:#FFE58A;color:inherit;border-radius:3px;padding:0 1px;}
+  .recherche-vide{padding:14px 12px;font-size:13.5px;color:var(--muted);}
+  .recherche-pied{padding:6px 12px 4px;font-size:11.5px;color:var(--muted);border-top:1px solid var(--line);margin-top:4px;}
+  @keyframes trouve{0%,40%{background:#FFF3B8;box-shadow:0 0 0 8px #FFF3B8;}100%{background:transparent;box-shadow:0 0 0 8px transparent;}}
+  .trouve{animation:trouve 2.2s ease-out;border-radius:6px;}
+  @media(max-width:700px){
+    .topbar h2,.topbar .ver{display:none;}
+    .recherche{max-width:none;}
+    .recherche-champ kbd{display:none;}
+  }
+  @media print{.recherche{display:none;}}
 </style>
 </head>
 <body>
@@ -333,7 +381,17 @@
 <div class="main">
   <div class="topbar">
     <h2 id="crumb">Centre d'aide — Leo RH by Neva</h2>
-    <span class="ver">Version 1.3</span>
+    <div class="recherche" role="search">
+      <div class="recherche-champ">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="recherche" type="search" placeholder="Rechercher dans l'aide…" autocomplete="off" spellcheck="false"
+               aria-label="Rechercher dans le centre d'aide" aria-controls="recherche-resultats" aria-expanded="false">
+        <button class="recherche-effacer" type="button" aria-label="Effacer la recherche" hidden>×</button>
+        <kbd title="Raccourci : touche /">/</kbd>
+      </div>
+      <div class="recherche-resultats" id="recherche-resultats" role="listbox" hidden></div>
+    </div>
+    <span class="ver">Version 1.4</span>
   </div>
 
   <div class="wrap">
@@ -1385,7 +1443,7 @@
 </div>
 
 <footer class="doc">
-  <div>Centre d'aide — <strong>Leo RH</strong> · Version 1.3</div>
+  <div>Centre d'aide — <strong>Leo RH</strong> · Version 1.4</div>
   <div>Leo RH <strong>by Neva</strong></div>
 </footer>
 
@@ -1422,6 +1480,158 @@
   window.addEventListener('scroll', sync, { passive: true });
   window.addEventListener('resize', sync);
   sync();
+</script>
+
+<script>
+  // Recherche dans le centre d'aide : tout le texte de la page est indexé au
+  // chargement, sans tenir compte des accents ni des majuscules.
+  (function(){
+    var champ = document.getElementById('recherche');
+    var panneau = document.getElementById('recherche-resultats');
+    var effacer = document.querySelector('.recherche-effacer');
+    var DECALAGE = 80;
+
+    // Un caractère → sa forme sans accent, en minuscule, toujours 1 pour 1.
+    function plier(c){ var n = c.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); return n.length === 1 ? n : c.toLowerCase().charAt(0) || c; }
+    function normaliser(t){ var r = ''; for (var i = 0; i < t.length; i++) r += plier(t.charAt(i)); return r; }
+    function propre(t){ return (t || '').replace(/\s+/g, ' ').trim(); }
+    function echapper(t){ return t.replace(/[&<>"]/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+    // ── Index : une entrée par section, sous-titre et question de FAQ ──
+    var entrees = [];
+    document.querySelectorAll('.wrap section[id]').forEach(function(sec){
+      var h2 = sec.querySelector('h2.sec');
+      var nomSection = h2 ? propre(h2.textContent.replace(/^\s*\d+/, '')) : '';
+      var e = { titre: nomSection, chemin: '', cible: sec, morceaux: [] };
+      entrees.push(e);
+      var h3 = '';
+      sec.querySelectorAll('h3,h4,details,p,li,dt,dd,td,figcaption,.note,.tile .t,.tile .d').forEach(function(el){
+        var details = el.closest('details');
+        if (el.tagName === 'H3' || el.tagName === 'H4') {
+          if (el.tagName === 'H3') h3 = propre(el.textContent);
+          e = { titre: propre(el.textContent), chemin: nomSection + (el.tagName === 'H4' && h3 ? ' › ' + h3 : ''), cible: el, morceaux: [] };
+          entrees.push(e);
+        } else if (el.tagName === 'DETAILS') {
+          var s = el.querySelector('summary');
+          e = { titre: propre(s ? s.textContent : ''), chemin: nomSection, cible: el, morceaux: [] };
+          entrees.push(e);
+        } else if (!details || e.cible === details) {
+          e.morceaux.push(propre(el.textContent));
+        }
+      });
+    });
+    entrees.forEach(function(e, i){
+      e.ordre = i;
+      e.texte = e.morceaux.join(' · ');
+      e.nTitre = normaliser(e.titre);
+      e.nTexte = normaliser(e.texte);
+    });
+
+    function mots(q){ return normaliser(q).split(/[\s,;:!?'’"()«»]+/).filter(function(m){ return m.length >= 2; }); }
+
+    // Met en évidence les mots trouvés (positions calculées sur le texte plié).
+    function surligner(texte, termes){
+      var n = normaliser(texte), zones = [];
+      termes.forEach(function(t){ var i = n.indexOf(t); while (i !== -1) { zones.push([i, i + t.length]); i = n.indexOf(t, i + t.length); } });
+      zones.sort(function(a, b){ return a[0] - b[0]; });
+      var r = '', pos = 0;
+      zones.forEach(function(z){ if (z[0] < pos) return; r += echapper(texte.slice(pos, z[0])) + '<mark>' + echapper(texte.slice(z[0], z[1])) + '</mark>'; pos = z[1]; });
+      return r + echapper(texte.slice(pos));
+    }
+
+    function extrait(e, termes){
+      var i = -1;
+      termes.forEach(function(t){ var j = e.nTexte.indexOf(t); if (j !== -1 && (i === -1 || j < i)) i = j; });
+      if (i === -1) return e.texte.slice(0, 150) + (e.texte.length > 150 ? '…' : '');
+      var debut = Math.max(0, i - 60), fin = Math.min(e.texte.length, i + 110);
+      while (debut > 0 && e.texte.charAt(debut - 1) !== ' ') debut--;
+      return (debut > 0 ? '…' : '') + e.texte.slice(debut, fin) + (fin < e.texte.length ? '…' : '');
+    }
+
+    function chercher(q){
+      var termes = mots(q);
+      if (!termes.length) return { termes: termes, liste: [] };
+      var liste = [];
+      entrees.forEach(function(e){
+        var score = 0;
+        for (var k = 0; k < termes.length; k++) {
+          var t = termes[k], dansTitre = e.nTitre.indexOf(t) !== -1, dansTexte = e.nTexte.indexOf(t) !== -1;
+          if (!dansTitre && !dansTexte) return;
+          if (dansTitre) score += 10;
+          if (dansTexte) score += Math.min(5, e.nTexte.split(t).length - 1);
+        }
+        // Titre qui commence par la recherche, puis section entière, en tête.
+        if (e.nTitre.indexOf(termes.join(' ')) === 0) score += 3;
+        if (e.cible.tagName === 'SECTION' && e.nTitre.indexOf(termes[0]) !== -1) score += 2;
+        liste.push({ e: e, score: score });
+      });
+      liste.sort(function(a, b){ return b.score - a.score || a.e.ordre - b.e.ordre; });
+      return { termes: termes, liste: liste.slice(0, 8), total: liste.length };
+    }
+
+    var resultats = [], actif = -1;
+    function afficher(){
+      var q = champ.value;
+      effacer.hidden = !q;
+      var r = chercher(q);
+      resultats = r.liste.map(function(x){ return x.e; });
+      actif = resultats.length ? 0 : -1;
+      if (!q.trim()) { fermer(); return; }
+      if (!r.termes.length) { panneau.innerHTML = '<div class="recherche-vide">Tapez au moins deux lettres.</div>'; ouvrir(); return; }
+      if (!resultats.length) {
+        panneau.innerHTML = '<div class="recherche-vide">Aucun résultat pour « <mark>' + echapper(q.trim()) + '</mark> ». Essayez un autre mot, ou consultez la <a href="#faq">FAQ</a> et le <a href="#glossaire">glossaire</a>.</div>';
+        ouvrir(); return;
+      }
+      panneau.innerHTML = resultats.map(function(e, i){
+        return '<button type="button" role="option" class="recherche-resultat' + (i === actif ? ' actif' : '') + '" data-i="' + i + '">' +
+          (e.chemin ? '<span class="chemin">' + echapper(e.chemin) + '</span>' : '') +
+          '<span class="titre">' + surligner(e.titre, r.termes) + '</span>' +
+          '<span class="extrait">' + surligner(extrait(e, r.termes), r.termes) + '</span></button>';
+      }).join('') + (r.total > resultats.length ? '<div class="recherche-pied">' + r.total + ' résultats : précisez votre recherche pour affiner.</div>' : '');
+      ouvrir();
+    }
+    function ouvrir(){ panneau.hidden = false; champ.setAttribute('aria-expanded', 'true'); }
+    function fermer(){ panneau.hidden = true; champ.setAttribute('aria-expanded', 'false'); }
+    function marquer(){
+      panneau.querySelectorAll('.recherche-resultat').forEach(function(b, i){ b.classList.toggle('actif', i === actif); if (i === actif) b.scrollIntoView({ block: 'nearest' }); });
+    }
+
+    function aller(e){
+      fermer(); champ.blur();
+      var cible = e.cible;
+      var details = cible.tagName === 'DETAILS' ? cible : cible.closest('details');
+      if (details) details.open = true;
+      var top = cible.getBoundingClientRect().top + window.pageYOffset - DECALAGE;
+      window.scrollTo({ top: top < 0 ? 0 : top, behavior: 'smooth' });
+      var marque = cible.tagName === 'SECTION' ? cible.querySelector('h2.sec') || cible : (cible.tagName === 'DETAILS' ? cible.querySelector('summary') || cible : cible);
+      marque.classList.remove('trouve'); void marque.offsetWidth; marque.classList.add('trouve');
+      var sec = cible.closest('section[id]');
+      if (sec && history.replaceState) history.replaceState(null, '', '#' + sec.id);
+    }
+
+    champ.addEventListener('input', afficher);
+    champ.addEventListener('focus', function(){ if (champ.value.trim()) afficher(); });
+    champ.addEventListener('keydown', function(ev){
+      if (ev.key === 'ArrowDown' && resultats.length) { ev.preventDefault(); actif = (actif + 1) % resultats.length; marquer(); }
+      else if (ev.key === 'ArrowUp' && resultats.length) { ev.preventDefault(); actif = (actif - 1 + resultats.length) % resultats.length; marquer(); }
+      else if (ev.key === 'Enter' && actif >= 0) { ev.preventDefault(); aller(resultats[actif]); }
+      else if (ev.key === 'Escape') { if (!panneau.hidden) fermer(); else { champ.value = ''; effacer.hidden = true; champ.blur(); } }
+    });
+    panneau.addEventListener('mousedown', function(ev){ ev.preventDefault(); });
+    panneau.addEventListener('click', function(ev){
+      var b = ev.target.closest('.recherche-resultat');
+      if (b) { aller(resultats[+b.getAttribute('data-i')]); return; }
+      var a = ev.target.closest('a[href^="#"]');
+      if (a) { fermer(); }
+    });
+    effacer.addEventListener('click', function(){ champ.value = ''; afficher(); champ.focus(); });
+    document.addEventListener('click', function(ev){ if (!ev.target.closest('.recherche')) fermer(); });
+    // Raccourcis : « / » ou Ctrl+K (Cmd+K sur Mac) pour chercher.
+    document.addEventListener('keydown', function(ev){
+      var saisie = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) || document.activeElement.isContentEditable;
+      if ((ev.key === '/' && !saisie) || ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'k')) { ev.preventDefault(); champ.focus(); champ.select(); }
+    });
+  })();
 </script>
 </body>
 </html>
