@@ -318,6 +318,28 @@
     .recherche-champ kbd{display:none;}
   }
   @media print{.recherche{display:none;}}
+
+  /* Nouveautés : lien de la barre latérale et bandeau de l'en-tête (mis à jour par outils/publier-nouveautes.mjs) */
+  .side-news{
+    display:flex;align-items:center;gap:10px;margin:12px 12px 0;padding:9px 12px;border-radius:10px;
+    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+    color:#fff;text-decoration:none;font-size:13.5px;font-weight:600;transition:background .15s;
+  }
+  .side-news:hover{background:rgba(255,255,255,.13);}
+  .side-news .ico{width:16px;height:16px;flex:0 0 16px;fill:none;stroke:#F5C46B;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  .side-news .t{flex:1;}
+  .side-news .d{font-size:11px;font-weight:600;color:rgba(255,255,255,.55);}
+  .bandeau-nouveaute{
+    position:relative;z-index:1;display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;
+    margin-top:24px;padding:7px 14px 7px 7px;border-radius:999px;
+    background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);
+    color:#fff;text-decoration:none;font-size:13.5px;transition:background .15s;
+  }
+  .bandeau-nouveaute:hover{background:rgba(255,255,255,.17);}
+  .bandeau-nouveaute .pastille{background:#F5C46B;color:var(--navy-900);font-weight:700;font-size:12px;border-radius:999px;padding:2px 10px;}
+  .bandeau-nouveaute .t{font-weight:600;}
+  .bandeau-nouveaute .voir{color:rgba(255,255,255,.7);}
+  @media print{.side-news,.bandeau-nouveaute{display:none;}}
 </style>
 </head>
 <body>
@@ -335,6 +357,7 @@
   <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 9 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 9a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z"/></symbol>
   <symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></symbol>
   <symbol id="i-shield-check" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.13-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.13a.5.5 0 0 1 .96 0L14.06 8.5A2 2 0 0 0 15.5 9.94l6.13 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.13a.5.5 0 0 1-.96 0z"/><path d="M20 3v4M22 5h-4"/></symbol>
   <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></symbol>
   <symbol id="i-login" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/></symbol>
   <symbol id="i-layout" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></symbol>
@@ -351,6 +374,7 @@
     </div>
     <div class="brand-sub">Centre d'aide</div>
   </div>
+  <!-- nouveautes:lien --><a class="side-news" href="nouveautes/"><svg class="ico"><use href="#i-sparkles"/></svg><span class="t">Nouveautés</span><span class="d">23 nov.</span></a><!-- /nouveautes:lien -->
   <nav class="side-nav" id="toc">
     <div class="side-group">Démarrer</div>
     <a href="#intro"><svg class="ico"><use href="#i-book"/></svg>Présentation</a>
@@ -392,7 +416,7 @@
       </div>
       <div class="recherche-resultats" id="recherche-resultats" role="listbox" hidden></div>
     </div>
-    <span class="ver">Version 1.6</span>
+    <span class="ver">Version 1.7</span>
   </div>
 
   <div class="wrap">
@@ -403,6 +427,7 @@
       <p>Tout ce qu'il faut savoir pour gérer vos congés, vos notes de frais, vos documents,
          vos projets et vos feuilles de temps dans Leo RH — du premier login jusqu'à
          l'administration complète de la plateforme.</p>
+      <!-- nouveautes:bandeau --><a class="bandeau-nouveaute" href="nouveautes/2026-11-23/"><span class="pastille">Nouveau · 23 nov.</span><span class="t">Documents RH plus souples</span><span class="voir">Voir les nouveautés →</span></a><!-- /nouveautes:bandeau -->
     </div>
 
     <section id="intro">
@@ -1665,7 +1690,7 @@
 </div>
 
 <footer class="doc">
-  <div>Centre d'aide — <strong>Leo RH</strong> · Version 1.6</div>
+  <div>Centre d'aide — <strong>Leo RH</strong> · Version 1.7</div>
   <div>Leo RH <strong>by Neva</strong></div>
 </footer>
 
